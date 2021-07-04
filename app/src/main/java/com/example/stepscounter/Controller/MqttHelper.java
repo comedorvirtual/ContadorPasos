@@ -1,12 +1,8 @@
 package com.example.stepscounter.Controller;
 
-import android.os.Handler;
 import android.util.Log;
-import android.widget.Toast;
-
 import com.example.stepscounter.Modelo.MqttMessageWrapper;
 import com.example.stepscounter.Utilities.ToolHelper;
-
 import org.eclipse.paho.client.mqttv3.DisconnectedBufferOptions;
 import org.eclipse.paho.client.mqttv3.IMqttActionListener;
 import org.eclipse.paho.client.mqttv3.IMqttDeliveryToken;
@@ -32,7 +28,7 @@ public class MqttHelper implements MqttCallback {
     private MqttAsyncClient mqttAndroidClient;
     private static MqttHelper instance;
     private static String TOPIC = "v1/devices/me/telemetry";
-    private static int QOS = -1;
+    private static int QOS = 0;
 
     private final int MAX_SIZE = 1000000;
     private MqttMessageWrapper[] mqttMessageWrapperArray = new MqttMessageWrapper[MAX_SIZE];
@@ -48,7 +44,7 @@ public class MqttHelper implements MqttCallback {
     }
 
     private MqttHelper() {
-        if (TOPIC.trim() == "") try {
+        if (TOPIC.trim().equals("")) try {
             throw new Exception("Topic was not defined");
         } catch (Exception e) {
             e.printStackTrace();
@@ -84,7 +80,7 @@ public class MqttHelper implements MqttCallback {
     }
 
     @Override
-    public void messageArrived(String topic, MqttMessage message) throws Exception {
+    public void messageArrived(String topic, MqttMessage message) {
         try {
 
             MqttMessageWrapper msg = (MqttMessageWrapper) ToolHelper.deserialize(message.getPayload());
@@ -147,7 +143,6 @@ public class MqttHelper implements MqttCallback {
         try {
             mqttMessageWrapperArray = new MqttMessageWrapper[MAX_SIZE];
             int _delay = delay * 1000;
-            byte[] messageByte;
             MqttMessage mqttMessage;
             COUNTER = 0;
             int MESSAGE_ID2 = 0;
@@ -170,14 +165,14 @@ public class MqttHelper implements MqttCallback {
                     byte[] objAsBytes = json.toString().getBytes("UTF-8");
                     byte[] objAsBytes2 = json2.toString().getBytes("UTF-8");
                    // "v1/devices/me/telemetry"
-                    mqttAndroidClient.publish(TOPIC,objAsBytes,1,true);
-                    mqttAndroidClient.publish(TOPIC,objAsBytes2,1,true);
+                    mqttAndroidClient.publish(TOPIC,objAsBytes,0,true);
+                    mqttAndroidClient.publish(TOPIC,objAsBytes2,0,true);
                     mqttMessage = new MqttMessage();
                     mqttMessage.setPayload(objAsBytes);
                     mqttMessage.setQos(QOS);
                     MESSAGE_ID2++;
 
-                    Log.d(TAG, "Temperatura:"+temp);
+                    Log.d(TAG, "Pasos:"+pasos);
                     //Toast.makeText(,"Temperatura:"+temp,Toast.LENGTH_SHORT).show();
 
                 }else {
@@ -185,7 +180,7 @@ public class MqttHelper implements MqttCallback {
                     Log.d(TAG, " is running:");
                 }
 
-                Thread.sleep(delay);
+                Thread.sleep(_delay);
             }
 
         } catch (Exception e) {
@@ -193,7 +188,7 @@ public class MqttHelper implements MqttCallback {
 
         }
     }
-    public void publishBatch(List<MqttMessageWrapper> messages, int delay) {
+   /* public void publishBatch(List<MqttMessageWrapper> messages, int delay) {
 
         try {
             mqttMessageWrapperArray = new MqttMessageWrapper[MAX_SIZE];
@@ -240,7 +235,7 @@ public class MqttHelper implements MqttCallback {
             e.printStackTrace();
 
         }
-    }
+    }*/
     private final IMqttActionListener publisher_IMqttActionListener = new IMqttActionListener() {
         @Override
         public void onSuccess(IMqttToken asyncActionToken) {

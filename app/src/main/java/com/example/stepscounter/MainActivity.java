@@ -10,7 +10,6 @@ import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
 import android.os.Bundle;
 import android.util.Log;
-import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
 
@@ -28,19 +27,16 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     private final static String TAG = "MainActivity";
     public final static String CLIENT_ID = UUID.randomUUID().toString();
     private SensorManager mSensorManager;
-    private int mStepCount = 0;
+    private int stepCount = 0;
     private int calorias = 0;
     private Sensor mAccelerometer;
     private TextView mStepSensorInfo;
     private TextView mCalorias;
     private StepDetector mDetector;
-    private Button start;
-    private Button stop;
-    private long startTime;
-    private float[] prev = {0f,0f,0f};
     private MqttBroadcastReceiver mqttBroadcastReceiver;
     private int size = 600;
     private int delay=2;
+    private int qos=0;
     private MqttHelper mqttHelper;
 
     @Override
@@ -51,21 +47,24 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         mqttHelper = MqttHelper.getInstance();
         mStepSensorInfo = findViewById(R.id.stepCounter_layout);
         mCalorias = findViewById(R.id.calorias_layout);
-        start = findViewById(R.id.button_play);
-        stop = findViewById(R.id.button_stop);
+        Button start = findViewById(R.id.button_play);
+        Button stop = findViewById(R.id.button_stop);
+        Button subir = findViewById(R.id.button_subir);
         mSensorManager = (SensorManager)this.getSystemService(Context.SENSOR_SERVICE);
         mAccelerometer = mSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
         mDetector = new StepDetector();
 
         start.setOnClickListener(v -> {
-            iniciarEnvio();
-
-            ArrayList<MqttMessageWrapper> data = ToolHelper.getData(size);
-            mqttHelper.publishBatch(data,delay,mStepCount,calorias);
-
             mSensorManager.registerListener(this,
                     mSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER),
                     SensorManager.SENSOR_DELAY_NORMAL);
+            Log.d(TAG, "Conectado");
+            iniciarEnvio();
+            publicar();
+            ArrayList<MqttMessageWrapper> data = ToolHelper.getData(size);
+            mqttHelper.publishBatch(data, delay , stepCount, calorias);
+
+
         });
 
         stop.setOnClickListener(v -> {
@@ -73,6 +72,10 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
             mSensorManager.unregisterListener(this,mAccelerometer);
         });
 
+        subir.setOnClickListener(v -> {
+
+
+        });
     }
     @Override
     protected void onResume() {
@@ -94,9 +97,9 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     public void onSensorChanged(SensorEvent event) {
         int step = mDetector.detect(event);
         if (step != 0) {
-            ++mStepCount;
-            calorias=getCaloria(mStepCount);
-            mStepSensorInfo.setText(String.valueOf(mStepCount));
+            ++stepCount;
+            calorias =getCaloria(stepCount);
+            mStepSensorInfo.setText(String.valueOf(stepCount));
             mCalorias.setText(String.valueOf(calorias));
         }
     }
@@ -111,9 +114,9 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     }
 
     private void initMqttService(String action) {
-        String topic = "topic1";
+        String topic = "v1/devices/me/telemetry";
         int qos = 0;
-        int delay = 30;
+        int delay = 2;
         int size = 600;
 
         Intent intent = new Intent(MainActivity.this, MqttHelperService.class);
@@ -121,6 +124,8 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         intent.putExtra(MqttIntentService.QOS, qos);
         intent.putExtra(MqttIntentService.DELAY, delay);
         intent.putExtra(MqttIntentService.DATA, size);
+        intent.putExtra(MqttIntentService.CALORIAS, calorias);
+        intent.putExtra(MqttIntentService.STEPCOUNT, stepCount);
         intent.setAction(action);
         startService(intent);
         /*

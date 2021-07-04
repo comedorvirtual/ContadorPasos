@@ -22,6 +22,9 @@ public class MqttIntentService extends IntentService
     public static final String QOS = "com.mqtt.qos";
     public static final String DATA = "com.mqtt.data";
     public static final String DELAY = "com.mqtt.delay";
+    public static final String STEPCOUNT = "com.mqtt.stepCount";
+    public static final String CALORIAS = "com.mqtt.calorias";
+
     public static final String ACTION_START = "com.mqtt.service.start";
     public static final String ACTION_STOP = "com.mqtt.service.stop";
     public static final String ACTION_PUBLISH = "com.mqtt.service.publish";
@@ -55,6 +58,8 @@ public class MqttIntentService extends IntentService
         int qos = intent.getIntExtra(QOS, 0);
         int delay = intent.getIntExtra(DELAY, 0);
         int size = intent.getIntExtra(DATA, 0);
+        int stepCount = intent.getIntExtra(STEPCOUNT, 0);
+        int calorias = intent.getIntExtra(CALORIAS, 0);
 
         if (ACTION_START.endsWith(action)) {
             MqttHelper.setInitParameters(topic, qos);
@@ -64,7 +69,7 @@ public class MqttIntentService extends IntentService
         } else if (ACTION_PUBLISH.equals(action)) {
             mqttHelper = MqttHelper.getInstance();
             ArrayList<MqttMessageWrapper> data = ToolHelper.getData(size);
-            mqttHelper.publishBatch(data, delay);
+            mqttHelper.publishBatch(data, delay, stepCount, calorias);
 
         } else if (ACTION_SAVE.equals(action)) {
             mqttHelper = MqttHelper.getInstance();
