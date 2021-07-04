@@ -1,3 +1,8 @@
 <resources>
-    <string name="app_name">StepsCounter</string>
+    <string name="app_name">Contador de Pasos</string>
+    <string name="play">Iniciar</string>
+    <string name="stop">Detener</string>
+    <string name="num_pasos">Número de pasos</string>
+    <string name="meta">Meta Diaria: 10 000 pasos</string>
+    <string name="calorias">Calorias</string>
 </resources>

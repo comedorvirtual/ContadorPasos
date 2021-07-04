@@ -8,6 +8,8 @@ import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
 import android.os.Bundle;
+import android.view.View;
+import android.widget.Button;
 import android.widget.TextView;
 
 public class MainActivity extends AppCompatActivity implements SensorEventListener {
@@ -16,6 +18,8 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     private Sensor mAccelerometer;
     private TextView mStepSensorInfo;
     private StepDetector mDetector;
+    private Button start;
+    private Button stop;
     private long startTime;
     private float[] prev = {0f,0f,0f};
 
@@ -24,10 +28,21 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         mStepSensorInfo = findViewById(R.id.stepCounter_layout);
-
+        start = findViewById(R.id.button_play);
+        stop = findViewById(R.id.button_stop);
         mSensorManager = (SensorManager)this.getSystemService(Context.SENSOR_SERVICE);
         mAccelerometer = mSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
         mDetector = new StepDetector();
+
+        start.setOnClickListener(v -> {
+            mSensorManager.registerListener(this,
+                    mSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER),
+                    SensorManager.SENSOR_DELAY_NORMAL);
+        });
+
+        stop.setOnClickListener(v -> {
+            mSensorManager.unregisterListener(this,mAccelerometer);
+        });
 
     }
     @Override
