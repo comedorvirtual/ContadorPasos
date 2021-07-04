@@ -17,6 +17,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     private int mStepCount = 0;
     private Sensor mAccelerometer;
     private TextView mStepSensorInfo;
+    private TextView mCalorias;
     private StepDetector mDetector;
     private Button start;
     private Button stop;
@@ -28,6 +29,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         mStepSensorInfo = findViewById(R.id.stepCounter_layout);
+        mCalorias = findViewById(R.id.calorias_layout);
         start = findViewById(R.id.button_play);
         stop = findViewById(R.id.button_stop);
         mSensorManager = (SensorManager)this.getSystemService(Context.SENSOR_SERVICE);
@@ -67,6 +69,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         if (step != 0) {
             ++mStepCount;
             mStepSensorInfo.setText(String.valueOf(mStepCount));
+            mCalorias.setText(String.valueOf(getCaloria(mStepCount)));
         }
     }
 
@@ -75,7 +78,9 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
     }
 
-
+    public int getCaloria(int mStepCount){
+        return mStepCount/33;
+    }
 
 
 }
