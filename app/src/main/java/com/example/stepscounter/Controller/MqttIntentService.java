@@ -22,8 +22,6 @@ public class MqttIntentService extends IntentService
     public static final String QOS = "com.mqtt.qos";
     public static final String DATA = "com.mqtt.data";
     public static final String DELAY = "com.mqtt.delay";
-    public static final String STEPCOUNT = "com.mqtt.stepCount";
-    public static final String CALORIAS = "com.mqtt.calorias";
 
     public static final String ACTION_START = "com.mqtt.service.start";
     public static final String ACTION_STOP = "com.mqtt.service.stop";
@@ -54,22 +52,25 @@ public class MqttIntentService extends IntentService
     @Override
     protected void onHandleIntent(@Nullable Intent intent) {
         String action = intent.getAction();
+        Log.d(TAG, "Saco Accion");
         String topic = intent.getStringExtra(TOPIC);
         int qos = intent.getIntExtra(QOS, 0);
         int delay = intent.getIntExtra(DELAY, 0);
         int size = intent.getIntExtra(DATA, 0);
-        int stepCount = intent.getIntExtra(STEPCOUNT, 0);
-        int calorias = intent.getIntExtra(CALORIAS, 0);
 
         if (ACTION_START.endsWith(action)) {
+            Log.d(TAG, "START");
             MqttHelper.setInitParameters(topic, qos);
             MqttHelper.getInstance().setMqttHelperListener(this);
         } else if (ACTION_STOP.equals(action)) {
             mqttHelper.close();
         } else if (ACTION_PUBLISH.equals(action)) {
             mqttHelper = MqttHelper.getInstance();
+            //  ArrayList<MqttMessageWrapper> data = ToolHelper.getData(size);
+            // mqttHelper.publishBatch(data, delay , stepCount, calorias);
+            Log.d(TAG, "PUBLISH");
             ArrayList<MqttMessageWrapper> data = ToolHelper.getData(size);
-            mqttHelper.publishBatch(data, delay, stepCount, calorias);
+            mqttHelper.publishBatch(data, delay);
 
         } else if (ACTION_SAVE.equals(action)) {
             mqttHelper = MqttHelper.getInstance();

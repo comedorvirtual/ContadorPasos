@@ -13,22 +13,23 @@ import android.util.Log;
 import android.widget.Button;
 import android.widget.TextView;
 
+import com.example.stepscounter.Controller.MainActivityListener;
 import com.example.stepscounter.Controller.MqttBroadcastReceiver;
 import com.example.stepscounter.Controller.MqttHelper;
 import com.example.stepscounter.Controller.MqttHelperService;
 import com.example.stepscounter.Controller.MqttIntentService;
 import com.example.stepscounter.Modelo.MqttMessageWrapper;
 import com.example.stepscounter.Utilities.ToolHelper;
+import com.example.stepscounter.Utilities.Util;
 
 import java.util.ArrayList;
 import java.util.UUID;
 
-public class MainActivity extends AppCompatActivity implements SensorEventListener {
+public class MainActivity extends AppCompatActivity implements SensorEventListener, MainActivityListener {
     private final static String TAG = "MainActivity";
     public final static String CLIENT_ID = UUID.randomUUID().toString();
+    public static Util datos;
     private SensorManager mSensorManager;
-    private int stepCount = 0;
-    private int calorias = 0;
     private Sensor mAccelerometer;
     private TextView mStepSensorInfo;
     private TextView mCalorias;
@@ -55,15 +56,10 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         mDetector = new StepDetector();
 
         start.setOnClickListener(v -> {
+            iniciarEnvio();
             mSensorManager.registerListener(this,
                     mSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER),
                     SensorManager.SENSOR_DELAY_NORMAL);
-            Log.d(TAG, "Conectado");
-            iniciarEnvio();
-            publicar();
-            ArrayList<MqttMessageWrapper> data = ToolHelper.getData(size);
-            mqttHelper.publishBatch(data, delay , stepCount, calorias);
-
 
         });
 
@@ -73,8 +69,8 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         });
 
         subir.setOnClickListener(v -> {
-
-
+            ArrayList<MqttMessageWrapper> data = ToolHelper.getData(size);
+            mqttHelper.publishBatch(data, delay);
         });
     }
     @Override
@@ -96,12 +92,20 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     @Override
     public void onSensorChanged(SensorEvent event) {
         int step = mDetector.detect(event);
+        int pasofuturo=1;
         if (step != 0) {
-            ++stepCount;
-            calorias =getCaloria(stepCount);
-            mStepSensorInfo.setText(String.valueOf(stepCount));
-            mCalorias.setText(String.valueOf(calorias));
+            pasofuturo = Util.pasos+1;
+            ++Util.pasos;
+            Util.calorias =getCaloria(Util.pasos);
+            mStepSensorInfo.setText(String.valueOf(Util.pasos));
+            mCalorias.setText(String.valueOf(Util.calorias));
         }
+        if(Util.pasos == pasofuturo)
+        {
+            ArrayList<MqttMessageWrapper> data = ToolHelper.getData(size);
+            mqttHelper.publishBatch(data, delay);
+        }
+
     }
 
     @Override
@@ -119,14 +123,14 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         int delay = 2;
         int size = 600;
 
+        Log.d(TAG, "initMqttService");
         Intent intent = new Intent(MainActivity.this, MqttHelperService.class);
         intent.putExtra(MqttIntentService.TOPIC, topic);
         intent.putExtra(MqttIntentService.QOS, qos);
         intent.putExtra(MqttIntentService.DELAY, delay);
         intent.putExtra(MqttIntentService.DATA, size);
-        intent.putExtra(MqttIntentService.CALORIAS, calorias);
-        intent.putExtra(MqttIntentService.STEPCOUNT, stepCount);
         intent.setAction(action);
+        Log.d(TAG, "Por enviar");
         startService(intent);
         /*
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
@@ -139,6 +143,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         try {
             initMqttService(MqttIntentService.ACTION_START);
         } catch (Exception e) {
+            Log.d(TAG, "error envio ");
             e.printStackTrace();
         }
     }
@@ -167,5 +172,10 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         } catch (Exception e) {
             e.printStackTrace();
         }
+    }
+
+    @Override
+    public void display(String data) {
+
     }
 }

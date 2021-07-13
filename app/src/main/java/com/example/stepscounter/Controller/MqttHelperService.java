@@ -37,8 +37,6 @@ public class MqttHelperService extends Service implements MqttHelperListener {
     public static final String ACTION_STOP = "com.mqtt.service.stop";
     public static final String ACTION_PUBLISH = "com.mqtt.service.publish";
     public static final String ACTION_SAVE = "com.mqtt.service.save";
-    public static final String STEPCOUNT = "com.mqtt.stepcount";
-    public static final String CALORIAS = "com.mqtt.calorias";
 
     private Thread workerThread = null;
     private MqttHelper mqttHelper = null;
@@ -65,11 +63,13 @@ public class MqttHelperService extends Service implements MqttHelperListener {
 
     @Override
     public void onCreate() {
+        Log.d(TAG, "MqqqService ");
         super.onCreate();
     }
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
+        Log.d(TAG, "OnStartCommand ");
         super.onStartCommand(intent, flags, startId);
         context = getApplicationContext();
         ignoreBatteryOptimization();
@@ -79,8 +79,6 @@ public class MqttHelperService extends Service implements MqttHelperListener {
         int qos = intent.getIntExtra(QOS, 0);
         final int delay = intent.getIntExtra(DELAY, 0);
         final int size = intent.getIntExtra(DATA, 0);
-        int stepCount = intent.getIntExtra(STEPCOUNT,0);
-        int calorias = intent.getIntExtra(CALORIAS,0);
 
         if (ACTION_START.equals(action)) {
             MqttHelper.setInitParameters(topic, qos);
@@ -101,9 +99,9 @@ public class MqttHelperService extends Service implements MqttHelperListener {
             if (workerThread == null || !workerThread.isAlive()) {
                 workerThread = new Thread(new Runnable() {
                     public void run() {
-                        Log.d(TAG, "workerThread: ");
+                        Log.d(TAG, "Publish ");
                         ArrayList<MqttMessageWrapper> data = ToolHelper.getData(size);
-                        mqttHelper.publishBatch(data, delay , stepCount, calorias);
+                        mqttHelper.publishBatch(data, delay);
                         display("Finished");
                         String datetime2 = ToolHelper.getDateTime();
                         ToolHelper.setPublishBegin(getApplicationContext(), "Finish at: " + datetime2);

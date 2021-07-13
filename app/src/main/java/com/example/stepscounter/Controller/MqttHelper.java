@@ -3,6 +3,8 @@ package com.example.stepscounter.Controller;
 import android.util.Log;
 import com.example.stepscounter.Modelo.MqttMessageWrapper;
 import com.example.stepscounter.Utilities.ToolHelper;
+import com.example.stepscounter.Utilities.Util;
+
 import org.eclipse.paho.client.mqttv3.DisconnectedBufferOptions;
 import org.eclipse.paho.client.mqttv3.IMqttActionListener;
 import org.eclipse.paho.client.mqttv3.IMqttDeliveryToken;
@@ -138,16 +140,16 @@ public class MqttHelper implements MqttCallback {
 
     }
 
-    public void publishBatch(List<MqttMessageWrapper> messages, int delay, int pasos, int calorias) {
+    public void publishBatch(List<MqttMessageWrapper> messages, int delay) {
 
         try {
             mqttMessageWrapperArray = new MqttMessageWrapper[MAX_SIZE];
-            int _delay = delay * 1000;
+            int _delay = 0 * 1000;
             MqttMessage mqttMessage;
             COUNTER = 0;
             int MESSAGE_ID2 = 0;
 
-            while (MESSAGE_ID2 < messages.size()) {
+            while (MESSAGE_ID2 < 1) {
 
                 if (mqttAndroidClient.isConnected()) {
 
@@ -158,8 +160,8 @@ public class MqttHelper implements MqttCallback {
                     Random rand = new Random();
                     int temp = rand.nextInt(100);
 
-                    String jsonString = "{\"N° Pasos\":"+pasos+"}";
-                    String jsonString2 = "{\"Calorias\":"+calorias+"}";
+                    String jsonString = "{\"N° Pasos\":"+ Util.pasos+"}";
+                    String jsonString2 = "{\"Calorias\":"+Util.calorias+"}";
                     JSONObject json = new JSONObject(jsonString);
                     JSONObject json2 = new JSONObject(jsonString2);
                     byte[] objAsBytes = json.toString().getBytes("UTF-8");
@@ -172,7 +174,7 @@ public class MqttHelper implements MqttCallback {
                     mqttMessage.setQos(QOS);
                     MESSAGE_ID2++;
 
-                    Log.d(TAG, "Pasos:"+pasos);
+                    Log.d(TAG, "Pasos:"+Util.pasos);
                     //Toast.makeText(,"Temperatura:"+temp,Toast.LENGTH_SHORT).show();
 
                 }else {

@@ -71,10 +71,11 @@ public class ToolHelper {
     }
 
     public static void setPublishBegin(Context context, String datetime) {
+
         SharedPreferences preferences = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
         SharedPreferences.Editor editor = preferences.edit();
         editor.putString(PREF_PUBLISH_BEGIN, datetime);
-        editor.commit();
+        editor.apply();
     }
 
     public static String getPublishBegin(Context context) {
